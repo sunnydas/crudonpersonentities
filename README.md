@@ -103,6 +103,7 @@ N.B1: Currently "admin" and "developer" users are seeded in the authorization mo
    ```	   
 4. Get all Persons
    This API provides the functionality of fetching all Persons in the system.
+   ```
    Resource: /api/v1/persons
 	   HTTP Verb: GET
 	    Authorization: Basic YWRtaW46cGFzc3dvcmQ=
