@@ -10,8 +10,7 @@ Simple Person Entity Service
 ## Description
 The Person entities service provides the following REST APIs:
 
-N.B1: Currently "admin" and "developer" users are seeded in the authorization module.
-N.B2: Password is "password"
+N.B1: Currently "admin" and "developer" users are seeded in the authorization module.Password is "password"
 
 1. Create person.
    This API provides functionality of basic person creation.
