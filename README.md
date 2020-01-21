@@ -144,7 +144,7 @@ N.B1: Currently "admin" and "developer" users are seeded in the authorization mo
 
 ## Run Instructions
 
-1. By default the application runs on port 9090, for example:
+1. By default the application runs on port 9095, for example:
    ```
       localhost:9095/api/v1/persons
    ```
