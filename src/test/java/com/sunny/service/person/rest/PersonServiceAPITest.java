@@ -52,6 +52,9 @@ public class PersonServiceAPITest {
 
     private final static String FIRST_NAME = "John";
 
+    private final static String NAME_TOO_LONG = "iCGZliVGrsZLu9HIYwOqnE9wJTtpKam4BWcg9rzBiuH3k" +
+            "0ur6nh0MjbCTZkRCCTNaIusZVimSmZGli9S3Co8T7JLvuWIQ0vSMdqwd\n";
+
     private final static String LAST_NAME = "Doe";
 
     private final static short AGE = 27;
@@ -408,6 +411,127 @@ public class PersonServiceAPITest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testCreatePersonFirstNameTooLong() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders
+                .post(PERSON_SERVICE_RESOURCE_PATH)
+                . header(HttpHeaders.AUTHORIZATION,
+                        "Basic " + Base64Utils.
+                                encodeToString(AUTH.getBytes()))
+                .content(PersonServiceAPITestUtil.
+                        getPersonAsJsonString(NAME_TOO_LONG,LAST_NAME,AGE,
+                                FAVORITE_COLOR,getHobbies()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testCreatePersonLastNameTooLong() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders
+                .post(PERSON_SERVICE_RESOURCE_PATH)
+                . header(HttpHeaders.AUTHORIZATION,
+                        "Basic " + Base64Utils.
+                                encodeToString(AUTH.getBytes()))
+                .content(PersonServiceAPITestUtil.
+                        getPersonAsJsonString(FIRST_NAME,NAME_TOO_LONG,AGE,
+                                FAVORITE_COLOR,getHobbies()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testGetUserNonExistent() throws Exception {
+        long personId = -1;
+        this.mockMvc.perform(MockMvcRequestBuilders
+                .get(PERSON_SERVICE_RESOURCE_PATH + "/" + personId)
+                . header(HttpHeaders.AUTHORIZATION,
+                        "Basic " + Base64Utils.
+                                encodeToString(AUTH.getBytes()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    public void testDeleteUserNonExistent() throws Exception {
+        long personId = -1;
+        this.mockMvc.perform(MockMvcRequestBuilders
+                .delete(PERSON_SERVICE_RESOURCE_PATH + "/" + personId)
+                . header(HttpHeaders.AUTHORIZATION,
+                        "Basic " + Base64Utils.
+                                encodeToString(AUTH.getBytes())))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testCrudOnUser() throws Exception {
+        List<String> hobbies = getHobbies();
+        MvcResult mvcResult = this.mockMvc.perform(MockMvcRequestBuilders
+                .post(PERSON_SERVICE_RESOURCE_PATH)
+                . header(HttpHeaders.AUTHORIZATION,
+                        "Basic " + Base64Utils.
+                                encodeToString(AUTH.getBytes()))
+                .content(PersonServiceAPITestUtil.
+                        getPersonAsJsonString(FIRST_NAME,LAST_NAME,AGE,
+                                FAVORITE_COLOR,hobbies))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.favoriteColor").
+                        value(FAVORITE_COLOR))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.personId").exists()).andReturn();
+        String content = mvcResult.getResponse().getContentAsString();
+        PersonPayLoad personPayLoad = PersonServiceAPITestUtil.convertFrom(content,
+                PersonPayLoad.class);
+        long personId = personPayLoad.getPersonId();
+        this.mockMvc.perform(MockMvcRequestBuilders
+                .get(PERSON_SERVICE_RESOURCE_PATH + "/" + personId)
+                . header(HttpHeaders.AUTHORIZATION,
+                        "Basic " + Base64Utils.
+                                encodeToString(AUTH.getBytes()))
+                .content(PersonServiceAPITestUtil.
+                        getPersonAsJsonString(FIRST_NAME,LAST_NAME,AGE,
+                                FAVORITE_COLOR,hobbies))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").
+                        value(FIRST_NAME))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.lastName").
+                        value(LAST_NAME))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.age").
+                        value(""+AGE))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.favoriteColor").
+                        value(FAVORITE_COLOR))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.personId").exists());
+        String favoriteColor = "prussian blue";
+        this.mockMvc.perform(MockMvcRequestBuilders
+                .put(PERSON_SERVICE_RESOURCE_PATH + "/" + personId)
+                . header(HttpHeaders.AUTHORIZATION,
+                        "Basic " + Base64Utils.
+                                encodeToString(AUTH.getBytes()))
+                .content(PersonServiceAPITestUtil.
+                        getPersonAsJsonString(FIRST_NAME,LAST_NAME,AGE,
+                                favoriteColor,hobbies))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.favoriteColor").
+                        value(favoriteColor))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.personId").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.personId").
+                        value(personId));
+        this.mockMvc.perform(MockMvcRequestBuilders
+                .delete(PERSON_SERVICE_RESOURCE_PATH + "/" + personId)
+                . header(HttpHeaders.AUTHORIZATION,
+                        "Basic " + Base64Utils.
+                                encodeToString(AUTH.getBytes())))
+                .andExpect(status().isNoContent());
     }
 
 }

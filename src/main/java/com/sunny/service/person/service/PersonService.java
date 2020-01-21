@@ -1,9 +1,11 @@
 package com.sunny.service.person.service;
 
+import com.sunny.service.person.exception.PersonValidationException;
 import com.sunny.service.person.exception.PersonValidationExceptionType;
 import com.sunny.service.person.exception.ResourceNotFoundException;
 import com.sunny.service.person.repository.PersonRepository;
 import com.sunny.service.person.repository.domain.PersonDTO;
+import com.sunny.service.person.service.util.PersonValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,12 +17,14 @@ public class PersonService {
     @Autowired
     PersonRepository personRepository;
 
-    public PersonDTO createPerson(PersonDTO person){
+    public PersonDTO createPerson(PersonDTO person) throws PersonValidationException {
+        PersonValidationUtil.validatePerson(person);
         return personRepository.save(person);
     }
 
-    public PersonDTO updatePerson(PersonDTO person) throws ResourceNotFoundException {
+    public PersonDTO updatePerson(PersonDTO person) throws ResourceNotFoundException, PersonValidationException {
        if(personRepository.existsById(person.getPersonId())) {
+           PersonValidationUtil.validatePerson(person);
            person = personRepository.save(person);
        } else{
            handleMissingPersonRecord(person.getPersonId());

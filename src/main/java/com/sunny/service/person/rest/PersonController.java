@@ -1,5 +1,6 @@
 package com.sunny.service.person.rest;
 
+import com.sunny.service.person.exception.PersonValidationException;
 import com.sunny.service.person.exception.ResourceNotFoundException;
 import com.sunny.service.person.repository.domain.PersonDTO;
 import com.sunny.service.person.rest.domain.PersonPayLoad;
@@ -21,7 +22,7 @@ public class PersonController {
     private PersonService personService;
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<PersonPayLoad> createPerson(@RequestBody PersonDTO person){
+    public ResponseEntity<PersonPayLoad> createPerson(@RequestBody PersonDTO person) throws PersonValidationException {
         person = personService.createPerson(person);
         return RestUtils.mapResponse(person,HttpStatus.CREATED);
     }
@@ -42,7 +43,7 @@ public class PersonController {
     @RequestMapping(value = "/{personId}",
             method = RequestMethod.PUT)
     public ResponseEntity<PersonPayLoad> updatePerson(@PathVariable("personId") @NotNull long personId,
-                                                      @RequestBody PersonDTO personDTO) throws ResourceNotFoundException {
+                                                      @RequestBody PersonDTO personDTO) throws ResourceNotFoundException, PersonValidationException {
         personDTO.setPersonId(personId);
         PersonDTO person = personService.updatePerson(personDTO);
         return RestUtils.mapResponse(person,HttpStatus.OK);
